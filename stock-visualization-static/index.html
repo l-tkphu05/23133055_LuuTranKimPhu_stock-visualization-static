@@ -3,10 +3,794 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 Stock Data Visualization Simulator - MSSV: 23133055</title>
-    <meta name="description" content="Mô phỏng quy trình phân tích dữ liệu cổ phiếu với Python - Luu Tran Kim Phu">
+    <title>📊 Stock Data Visualization Simulator - MSSV 23133055</title>
+    <meta name="description" content="Mô phỏng quy trình phân tích dữ liệu cổ phiếu - Luu Tran Kim Phu">
     <meta name="author" content="Luu Tran Kim Phu - 23133055">
-    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #7c3aed;
+            --secondary-dark: #6d28d9;
+            --success: #10b981;
+            --success-dark: #059669;
+            --warning: #f59e0b;
+            --warning-dark: #d97706;
+            --danger: #ef4444;
+            --danger-dark: #dc2626;
+            --dark: #1f2937;
+            --darker: #111827;
+            --light: #f8fafc;
+            --lighter: #f1f5f9;
+            --text: #374151;
+            --text-light: #6b7280;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(255,255,255,0.1)"%3E%3Cpolygon points="0,100 1000,0 1000,100"/%3E%3C/svg%3E');
+            background-size: cover;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            opacity: 0.95;
+            font-size: 1.2rem;
+            font-weight: 300;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            min-height: 700px;
+        }
+        
+        /* Sidebar - Steps Navigation */
+        .steps-sidebar {
+            background: linear-gradient(180deg, var(--lighter) 0%, white 100%);
+            padding: 2rem 1.5rem;
+            border-right: 1px solid #e5e7eb;
+            position: relative;
+        }
+        
+        .steps-sidebar::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+            opacity: 0.1;
+        }
+        
+        .step-item {
+            display: flex;
+            align-items: center;
+            padding: 1.25rem 1rem;
+            margin-bottom: 0.75rem;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .step-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .step-item:hover {
+            background: #f0f9ff;
+            transform: translateX(8px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.15);
+        }
+        
+        .step-item.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-color: var(--primary);
+            transform: translateX(8px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+        }
+        
+        .step-item.active::before {
+            transform: scaleY(1);
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: var(--dark);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .step-item.active .step-number {
+            background: white;
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+        
+        .step-text {
+            font-weight: 600;
+            flex: 1;
+        }
+        
+        .step-status {
+            margin-left: auto;
+            font-size: 0.75rem;
+            opacity: 0.8;
+            font-weight: 500;
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .step-item.active .step-status {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        /* Content Area */
+        .content-area {
+            padding: 2.5rem;
+            position: relative;
+            background: var(--light);
+        }
+        
+        .step-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+        
+        .step-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+            animation: slideInUp 0.6s ease-out;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .step-header {
+            margin-bottom: 2rem;
+        }
+        
+        .step-header h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .step-header p {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+        
+        /* File Upload */
+        .upload-area {
+            border: 3px dashed #cbd5e1;
+            border-radius: 20px;
+            padding: 4rem 3rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            transition: all 0.4s ease;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.05), transparent);
+            transition: left 0.6s ease;
+        }
+        
+        .upload-area:hover::before {
+            left: 100%;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: #f0f9ff;
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(37, 99, 235, 0.1);
+        }
+        
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background: #dbeafe;
+            transform: scale(1.02);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .upload-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .upload-btn:hover::before {
+            left: 100%;
+        }
+        
+        .upload-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(37, 99, 235, 0.4);
+        }
+        
+        /* Code Blocks */
+        .code-block {
+            background: var(--darker);
+            color: #e5e7eb;
+            padding: 2rem;
+            border-radius: 16px;
+            margin: 1.5rem 0;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            position: relative;
+            overflow-x: auto;
+            border: 1px solid #374151;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        
+        .code-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #374151;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .copy-btn:hover {
+            background: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        /* Output Display */
+        .output-container {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 1.5rem;
+            min-height: 250px;
+            max-height: 500px;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .output-container.loading {
+            background: linear-gradient(90deg, #f8fafc 25%, #f1f5f9 50%, #f8fafc 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .output-line {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .output-line:hover {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding-left: 1rem;
+        }
+        
+        .output-line.success {
+            color: var(--success);
+            font-weight: 600;
+        }
+        
+        .output-line.error {
+            color: var(--danger);
+            font-weight: 600;
+        }
+        
+        .output-line.warning {
+            color: var(--warning);
+            font-weight: 600;
+        }
+        
+        .output-line.info {
+            color: var(--primary);
+        }
+        
+        /* Control Buttons */
+        .control-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-width: 140px;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .control-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .control-btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn-run {
+            background: linear-gradient(135deg, var(--success), var(--success-dark));
+            color: white;
+        }
+        
+        .btn-run:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-reset {
+            background: linear-gradient(135deg, var(--danger), var(--danger-dark));
+            color: white;
+        }
+        
+        .btn-reset:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+        }
+        
+        .btn-next {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+        
+        .btn-next:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        }
+        
+        .btn-prev {
+            background: linear-gradient(135deg, var(--warning), var(--warning-dark));
+            color: white;
+        }
+        
+        .btn-prev:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+        }
+        
+        /* Progress Bar */
+        .progress-container {
+            background: #e5e7eb;
+            border-radius: 20px;
+            height: 12px;
+            margin: 2.5rem 0;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            height: 100%;
+            width: 0%;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .progress-text {
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Loading Spinner */
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* File List */
+        .file-list {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .file-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .file-item:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.1);
+        }
+        
+        .file-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .file-info {
+            flex: 1;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .file-size {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+        
+        /* Data Validation */
+        .validation-result {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 1.5rem;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .validation-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .validation-item:last-child {
+            border-bottom: none;
+        }
+        
+        .validation-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .validation-icon.success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .validation-icon.error {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .validation-icon.warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .steps-sidebar {
+                border-right: none;
+                border-bottom: 1px solid #e5e7eb;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 16px;
+            }
+            
+            .header {
+                padding: 2rem 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content-area {
+                padding: 1.5rem;
+            }
+            
+            .step-header h2 {
+                font-size: 1.8rem;
+            }
+            
+            .control-buttons {
+                flex-direction: column;
+            }
+            
+            .control-btn {
+                width: 100%;
+            }
+        }
+        
+        /* Chart Preview */
+        .chart-preview {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 1.5rem;
+            border: 2px solid #e5e7eb;
+            text-align: center;
+        }
+        
+        .chart-placeholder {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        /* Statistics Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            text-align: center;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(37, 99, 235, 0.1);
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: var(--text-light);
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -14,7 +798,7 @@
             <div class="header-content">
                 <h1>📊 Stock Data Visualization Simulator</h1>
                 <p>Mô phỏng quy trình phân tích dữ liệu cổ phiếu với Python</p>
-                <p class="student-info">MSSV: 23133055 - Lưu Trần Kim Phú</p>
+                <p style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.9;">MSSV: 23133055 - Lưu Trần Kim Phú</p>
             </div>
         </div>
         
@@ -25,17 +809,1247 @@
         
         <div class="main-content">
             <!-- Sidebar với các bước -->
-            <div class="steps-sidebar" id="stepsSidebar">
-                <!-- Steps will be generated by JavaScript -->
+            <div class="steps-sidebar">
+                <div class="step-item active" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-text">Upload Files</div>
+                    <div class="step-status">Chờ thực hiện</div>
+                </div>
+                <div class="step-item" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-text">Đọc dữ liệu</div>
+                    <div class="step-status">Chờ thực hiện</div>
+                </div>
+                <div class="step-item" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-text">Tìm mã cổ phiếu</div>
+                    <div class="step-status">Chờ thực hiện</div>
+                </div>
+                <div class="step-item" data-step="4">
+                    <div class="step-number">4</div>
+                    <div class="step-text">Thống kê cơ bản</div>
+                    <div class="step-status">Chờ thực hiện</div>
+                </div>
+                <div class="step-item" data-step="5">
+                    <div class="step-number">5</div>
+                    <div class="step-text">Tạo cột Info01</div>
+                    <div class="step-status">Chờ thực hiện</div>
+                </div>
+                <div class="step-item" data-step="6">
+                    <div class="step-number">6</div>
+                    <div class="step-text">Tạo cột Info02</div>
+                    <div class="step-status">Chờ thực hiện</div>
+                </div>
+                <div class="step-item" data-step="7">
+                    <div class="step-number">7</div>
+                    <div class="step-text">Phân tích xu hướng</div>
+                    <div class="step-status">Chờ thực hiện</div>
+                </div>
+                <div class="step-item" data-step="8">
+                    <div class="step-number">8</div>
+                    <div class="step-text">Vẽ biểu đồ</div>
+                    <div class="step-status">Chờ thực hiện</div>
+                </div>
+                <div class="step-item" data-step="9">
+                    <div class="step-number">9</div>
+                    <div class="step-text">Mô hình hồi quy</div>
+                    <div class="step-status">Chờ thực hiện</div>
+                </div>
+                <div class="step-item" data-step="10">
+                    <div class="step-number">10</div>
+                    <div class="step-text">Tổng kết & Xuất file</div>
+                    <div class="step-status">Chờ thực hiện</div>
+                </div>
             </div>
             
             <!-- Nội dung chính -->
-            <div class="content-area" id="contentArea">
-                <!-- Content will be generated by JavaScript -->
+            <div class="content-area">
+                <!-- Step 1: Upload Files -->
+                <div class="step-content active" id="step1">
+                    <div class="step-header">
+                        <h2>📁 Bước 1: Upload Files Dữ liệu</h2>
+                        <p>Tải lên 2 file CSV cần thiết cho phân tích. Hệ thống sẽ tự động kiểm tra tính hợp lệ của dữ liệu.</p>
+                    </div>
+                    
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="fileInput" class="file-input" accept=".csv" multiple="multiple">
+                        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                            📎 Chọn Files CSV
+                        </button>
+                        <p style="margin-top: 1.5rem; color: #64748b; font-size: 1.1rem;">
+                            Kéo thả file vào đây hoặc click để chọn<br>
+                            <small style="font-size: 0.95rem;">Yêu cầu: vnstock_listing_companies.csv và SZL.csv</small>
+                        </p>
+                    </div>
+                    
+                    <div class="file-list" id="fileList">
+                        <!-- Danh sách file sẽ hiển thị ở đây -->
+                    </div>
+                    
+                    <div class="validation-result" id="validationResult1" style="display: none;">
+                        <h3 style="margin-bottom: 1.5rem; color: #1f2937;">🔍 Kết quả kiểm tra dữ liệu:</h3>
+                        <div id="validationContent1"></div>
+                    </div>
+                    
+                    <div class="loading-spinner" id="loading1">
+                        <div class="spinner"></div>
+                        <p>Đang kiểm tra và xác thực dữ liệu...</p>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="control-btn btn-run" onclick="runStep(1)">
+                            <span>🚀 Chạy Bước 1</span>
+                        </button>
+                        <button class="control-btn btn-reset" onclick="resetStep(1)">
+                            <span>🔄 Reset</span>
+                        </button>
+                        <button class="control-btn btn-next" onclick="nextStep()" disabled="disabled" id="nextBtn1">
+                            <span>Tiếp theo →</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Đọc dữ liệu -->
+                <div class="step-content" id="step2">
+                    <div class="step-header">
+                        <h2>📖 Bước 2: Đọc và Hiểu Dữ liệu</h2>
+                        <p>Đọc file CSV và hiển thị thông tin cơ bản về cấu trúc dữ liệu, kiểm tra tính toàn vẹn của dữ liệu.</p>
+                    </div>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <span>📋 Copy</span>
+                        </button>
+                        <code># Đọc file danh sách công ty
+import pandas as pd
+
+df_listings = pd.read_csv("vnstock_listing_companies.csv")
+
+print("Danh sách các cột:")
+print(list(df_listings.columns))
+print("\nSố dòng dữ liệu:", len(df_listings))
+
+# Kiểm tra dữ liệu missing
+print("\nKiểm tra dữ liệu thiếu:")
+print(df_listings.isnull().sum())</code>
+                    </div>
+                    
+                    <div class="output-container" id="output2">
+                        <!-- Kết quả sẽ hiển thị ở đây -->
+                    </div>
+                    
+                    <div class="loading-spinner" id="loading2">
+                        <div class="spinner"></div>
+                        <p>Đang đọc và phân tích dữ liệu...</p>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="control-btn btn-prev" onclick="prevStep()">
+                            <span>← Quay lại</span>
+                        </button>
+                        <button class="control-btn btn-run" onclick="runStep(2)">
+                            <span>🚀 Chạy Bước 2</span>
+                        </button>
+                        <button class="control-btn btn-reset" onclick="resetStep(2)">
+                            <span>🔄 Reset</span>
+                        </button>
+                        <button class="control-btn btn-next" onclick="nextStep()" disabled="disabled" id="nextBtn2">
+                            <span>Tiếp theo →</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Tìm mã cổ phiếu -->
+                <div class="step-content" id="step3">
+                    <div class="step-header">
+                        <h2>🔍 Bước 3: Tìm Mã Cổ Phiếu từ MSSV</h2>
+                        <p>Tìm mã cổ phiếu dựa trên MSSV theo quy tắc đề bài. Xác định mã SZL từ MSSV 23133055.</p>
+                    </div>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <span>📋 Copy</span>
+                        </button>
+                        <code>def find_stock(mssv, listings_df):
+    mssv_str = str(mssv)
+    last4 = mssv_str[-4:]
+    remainder = int(last4) % 1000
+    idx = remainder % len(listings_df)
+    row = listings_df.iloc[idx]
+    return idx, row['ticker'], row['shortName'], row['monthlyRecords']
+
+mssv = 23133055
+idx, ticker_X, shortName_X, monthlyRecords_X = find_stock(mssv, df_listings)
+
+print(f"MSSV: {mssv}")
+print(f"4 chữ số cuối: {str(mssv)[-4:]}")
+print(f"Index dùng: {idx}")
+print(f"Ticker được chọn: {ticker_X}")
+print(f"Tên công ty: {shortName_X}")
+print(f"File lịch sử: {monthlyRecords_X}")</code>
+                    </div>
+                    
+                    <div class="output-container" id="output3">
+                        <!-- Kết quả sẽ hiển thị ở đây -->
+                    </div>
+                    
+                    <div class="loading-spinner" id="loading3">
+                        <div class="spinner"></div>
+                        <p>Đang tìm kiếm mã cổ phiếu...</p>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="control-btn btn-prev" onclick="prevStep()">
+                            <span>← Quay lại</span>
+                        </button>
+                        <button class="control-btn btn-run" onclick="runStep(3)">
+                            <span>🚀 Chạy Bước 3</span>
+                        </button>
+                        <button class="control-btn btn-reset" onclick="resetStep(3)">
+                            <span>🔄 Reset</span>
+                        </button>
+                        <button class="control-btn btn-next" onclick="nextStep()" disabled="disabled" id="nextBtn3">
+                            <span>Tiếp theo →</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Thống kê cơ bản -->
+                <div class="step-content" id="step4">
+                    <div class="step-header">
+                        <h2>📊 Bước 4: Thống Kê Cơ Bản</h2>
+                        <p>Thống kê dữ liệu giao dịch tháng 8-9/2023, phân tích các chỉ số quan trọng của cổ phiếu SZL.</p>
+                    </div>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <span>📋 Copy</span>
+                        </button>
+                        <code># Đọc file lịch sử giao dịch
+df_hist = pd.read_csv(f"{ticker_X}.csv")
+df_hist.rename(columns={'time': 'Date'}, inplace=True)
+df_hist['Date'] = pd.to_datetime(df_hist['Date'])
+
+# Lọc dữ liệu tháng 8-9/2023
+start_date = '2023-08-01'
+end_date = '2023-09-30'
+mask = (df_hist['Date'] >= start_date) & (df_hist['Date'] <= end_date)
+df_period = df_hist.loc[mask].copy()
+
+# Thống kê cơ bản
+stats = {
+    'Số ngày giao dịch': len(df_period),
+    'Tổng khối lượng': int(df_period['volume'].sum()),
+    'Khối lượng trung bình': float(df_period['volume'].mean()),
+    'Giá Close trung bình': float(df_period['close'].mean()),
+    'Giá Close cao nhất': float(df_period['close'].max()),
+    'Giá Close thấp nhất': float(df_period['close'].min()),
+    'Biên độ giá trung bình': float((df_period['high'] - df_period['low']).mean())
+}</code>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="statDays">0</div>
+                            <div class="stat-label">Ngày giao dịch</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statVolume">0</div>
+                            <div class="stat-label">Tổng khối lượng</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statAvgPrice">0</div>
+                            <div class="stat-label">Giá TB</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statRange">0</div>
+                            <div class="stat-label">Biên độ TB</div>
+                        </div>
+                    </div>
+                    
+                    <div class="output-container" id="output4">
+                        <!-- Kết quả sẽ hiển thị ở đây -->
+                    </div>
+                    
+                    <div class="loading-spinner" id="loading4">
+                        <div class="spinner"></div>
+                        <p>Đang phân tích và thống kê dữ liệu...</p>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="control-btn btn-prev" onclick="prevStep()">
+                            <span>← Quay lại</span>
+                        </button>
+                        <button class="control-btn btn-run" onclick="runStep(4)">
+                            <span>🚀 Chạy Bước 4</span>
+                        </button>
+                        <button class="control-btn btn-reset" onclick="resetStep(4)">
+                            <span>🔄 Reset</span>
+                        </button>
+                        <button class="control-btn btn-next" onclick="nextStep()" disabled="disabled" id="nextBtn4">
+                            <span>Tiếp theo →</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 5: Tạo cột Info01 -->
+                <div class="step-content" id="step5">
+                    <div class="step-header">
+                        <h2>📈 Bước 5: Tạo Cột Info01</h2>
+                        <p>Tạo cột Info01 so sánh giá Close với Open trong cùng ngày, phân tích xu hướng giá trong ngày.</p>
+                    </div>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <span>📋 Copy</span>
+                        </button>
+                        <code>def compare_values(a, b):
+    if pd.isna(a) or pd.isna(b):
+        return 0
+    if a > b:
+        return 1
+    elif a < b:
+        return -1
+    else:
+        return 0
+
+# Tạo cột Info01: Close vs Open
+df_period['Info01'] = df_period.apply(
+    lambda row: compare_values(row['close'], row['open']), axis=1
+)
+
+print("Phân bố giá trị Info01:")
+print(df_period['Info01'].value_counts().sort_index())
+print("\nGiải thích: 1=Close>Open, -1=Close<Open, 0=Close=Open")</code>
+                    </div>
+                    
+                    <div class="output-container" id="output5">
+                        <!-- Kết quả sẽ hiển thị ở đây -->
+                    </div>
+                    
+                    <div class="loading-spinner" id="loading5">
+                        <div class="spinner"></div>
+                        <p>Đang xử lý và phân tích dữ liệu...</p>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="control-btn btn-prev" onclick="prevStep()">
+                            <span>← Quay lại</span>
+                        </button>
+                        <button class="control-btn btn-run" onclick="runStep(5)">
+                            <span>🚀 Chạy Bước 5</span>
+                        </button>
+                        <button class="control-btn btn-reset" onclick="resetStep(5)">
+                            <span>🔄 Reset</span>
+                        </button>
+                        <button class="control-btn btn-next" onclick="nextStep()" disabled="disabled" id="nextBtn5">
+                            <span>Tiếp theo →</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 6: Tạo cột Info02 -->
+                <div class="step-content" id="step6">
+                    <div class="step-header">
+                        <h2>📉 Bước 6: Tạo Cột Info02</h2>
+                        <p>Tạo cột Info02 so sánh giá Close với Close ngày trước đó, phân tích xu hướng giá liên tiếp.</p>
+                    </div>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <span>📋 Copy</span>
+                        </button>
+                        <code># Sắp xếp theo ngày
+df_period = df_period.sort_values('Date').reset_index(drop=True)
+
+# Tạo cột Close ngày trước
+df_period['Prev_Close'] = df_period['close'].shift(1)
+
+# Tạo cột Info02
+df_period['Info02'] = df_period.apply(
+    lambda row: compare_values(row['close'], row['Prev_Close']), axis=1
+)
+
+# Xóa cột tạm
+df_period.drop('Prev_Close', axis=1, inplace=True)
+
+print("Phân bố giá trị Info02:")
+info02_counts = df_period['Info02'].value_counts().sort_index()
+print(info02_counts)
+
+# Tính tỷ lệ
+total_days = len(df_period)
+up_days = info02_counts.get(1, 0)
+down_days = info02_counts.get(-1, 0)
+equal_days = info02_counts.get(0, 0)
+
+print(f"\nTỷ lệ biến động:")
+print(f"Số ngày tăng: {up_days} ({up_days/total_days*100:.1f}%)")
+print(f"Số ngày giảm: {down_days} ({down_days/total_days*100:.1f}%)")
+print(f"Số ngày không đổi: {equal_days} ({equal_days/total_days*100:.1f}%)")</code>
+                    </div>
+                    
+                    <div class="output-container" id="output6">
+                        <!-- Kết quả sẽ hiển thị ở đây -->
+                    </div>
+                    
+                    <div class="loading-spinner" id="loading6">
+                        <div class="spinner"></div>
+                        <p>Đang phân tích xu hướng giá...</p>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="control-btn btn-prev" onclick="prevStep()">
+                            <span>← Quay lại</span>
+                        </button>
+                        <button class="control-btn btn-run" onclick="runStep(6)">
+                            <span>🚀 Chạy Bước 6</span>
+                        </button>
+                        <button class="control-btn btn-reset" onclick="resetStep(6)">
+                            <span>🔄 Reset</span>
+                        </button>
+                        <button class="control-btn btn-next" onclick="nextStep()" disabled="disabled" id="nextBtn6">
+                            <span>Tiếp theo →</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 7: Phân tích xu hướng -->
+                <div class="step-content" id="step7">
+                    <div class="step-header">
+                        <h2>📊 Bước 7: Phân Tích Xu Hướng</h2>
+                        <p>Phân tích chi tiết xu hướng giá, volume và mối quan hệ giữa các chỉ số.</p>
+                    </div>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <span>📋 Copy</span>
+                        </button>
+                        <code># Phân tích tương quan
+correlation = df_period['volume'].corr(df_period['close'])
+print(f"Hệ số tương quan Volume-Close: {correlation:.4f}")
+
+# Phân tích theo tuần
+df_period['Week'] = df_period['Date'].dt.isocalendar().week
+weekly_stats = df_period.groupby('Week').agg({
+    'close': ['mean', 'std'],
+    'volume': 'sum',
+    'Info02': lambda x: (x == 1).sum()
+}).round(2)
+
+print("\nThống kê theo tuần:")
+print(weekly_stats)
+
+# Phân tích volume abnormal
+volume_mean = df_period['volume'].mean()
+volume_std = df_period['volume'].std()
+abnormal_volume = df_period[df_period['volume'] > volume_mean + 2*volume_std]
+print(f"\nSố ngày có volume bất thường: {len(abnormal_volume)}")</code>
+                    </div>
+                    
+                    <div class="output-container" id="output7">
+                        <!-- Kết quả sẽ hiển thị ở đây -->
+                    </div>
+                    
+                    <div class="loading-spinner" id="loading7">
+                        <div class="spinner"></div>
+                        <p>Đang phân tích xu hướng và tương quan...</p>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="control-btn btn-prev" onclick="prevStep()">
+                            <span>← Quay lại</span>
+                        </button>
+                        <button class="control-btn btn-run" onclick="runStep(7)">
+                            <span>🚀 Chạy Bước 7</span>
+                        </button>
+                        <button class="control-btn btn-reset" onclick="resetStep(7)">
+                            <span>🔄 Reset</span>
+                        </button>
+                        <button class="control-btn btn-next" onclick="nextStep()" disabled="disabled" id="nextBtn7">
+                            <span>Tiếp theo →</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 8: Vẽ biểu đồ -->
+                <div class="step-content" id="step8">
+                    <div class="step-header">
+                        <h2>📈 Bước 8: Vẽ Biểu Đồ</h2>
+                        <p>Trực quan hóa dữ liệu thông qua các biểu đồ đường và biểu đồ cột.</p>
+                    </div>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <span>📋 Copy</span>
+                        </button>
+                        <code>import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Biểu đồ đường giá
+plt.figure(figsize=(14, 8))
+plt.plot(df_period['Date'], df_period['close'], label='Close', linewidth=2, marker='o')
+plt.plot(df_period['Date'], df_period['open'], label='Open', linewidth=2, marker='s')
+plt.title(f'{ticker_X} - Biểu đồ giá (08-09/2023)')
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+# Biểu đồ volume
+plt.figure(figsize=(14, 6))
+plt.bar(df_period['Date'], df_period['volume'], alpha=0.7)
+plt.title(f'{ticker_X} - Khối lượng giao dịch')
+plt.xlabel('Date')
+plt.ylabel('Volume')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()</code>
+                    </div>
+                    
+                    <div class="chart-preview">
+                        <div class="chart-placeholder">
+                            📊 Biểu đồ sẽ được hiển thị tại đây
+                        </div>
+                        <p>Biểu đồ thể hiện xu hướng giá và khối lượng giao dịch của cổ phiếu SZL</p>
+                    </div>
+                    
+                    <div class="output-container" id="output8">
+                        <!-- Kết quả sẽ hiển thị ở đây -->
+                    </div>
+                    
+                    <div class="loading-spinner" id="loading8">
+                        <div class="spinner"></div>
+                        <p>Đang tạo và hiển thị biểu đồ...</p>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="control-btn btn-prev" onclick="prevStep()">
+                            <span>← Quay lại</span>
+                        </button>
+                        <button class="control-btn btn-run" onclick="runStep(8)">
+                            <span>🚀 Chạy Bước 8</span>
+                        </button>
+                        <button class="control-btn btn-reset" onclick="resetStep(8)">
+                            <span>🔄 Reset</span>
+                        </button>
+                        <button class="control-btn btn-next" onclick="nextStep()" disabled="disabled" id="nextBtn8">
+                            <span>Tiếp theo →</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 9: Mô hình hồi quy -->
+                <div class="step-content" id="step9">
+                    <div class="step-header">
+                        <h2>🤖 Bước 9: Mô Hình Hồi Quy</h2>
+                        <p>Xây dựng mô hình hồi quy tuyến tính để dự đoán giá Close dựa trên Volume.</p>
+                    </div>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <span>📋 Copy</span>
+                        </button>
+                        <code>from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+import numpy as np
+
+# Chuẩn bị dữ liệu
+df_model = df_period[['close', 'volume']].dropna().copy()
+X = df_model[['volume']].values
+y = df_model['close'].values
+
+# Chia dữ liệu train/test
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Huấn luyện mô hình
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Dự đoán và đánh giá
+y_pred = model.predict(X_test)
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+r2 = r2_score(y_test, y_pred)
+
+print("KẾT QUẢ MÔ HÌNH HỒI QUY:")
+print(f"Hệ số hồi quy: {model.coef_[0]:.8f}")
+print(f"Intercept: {model.intercept_:.2f}")
+print(f"R² (Độ phù hợp): {r2:.4f}")
+print(f"RMSE (Sai số): {rmse:.2f}")
+
+# Dự đoán cho 10 giá trị volume mẫu
+sample_volumes = [1000, 5000, 10000, 25000, 50000, 75000, 100000, 250000, 500000, 1000000]
+predictions = model.predict(np.array(sample_volumes).reshape(-1, 1))
+
+print("\nDỰ ĐOÁN CHO 10 GIÁ TRỊ VOLUME:")
+for vol, pred in zip(sample_volumes, predictions):
+    print(f"Volume = {vol:>8,} → Predicted Close = {pred:>8.0f}")</code>
+                    </div>
+                    
+                    <div class="output-container" id="output9">
+                        <!-- Kết quả sẽ hiển thị ở đây -->
+                    </div>
+                    
+                    <div class="loading-spinner" id="loading9">
+                        <div class="spinner"></div>
+                        <p>Đang huấn luyện mô hình hồi quy...</p>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="control-btn btn-prev" onclick="prevStep()">
+                            <span>← Quay lại</span>
+                        </button>
+                        <button class="control-btn btn-run" onclick="runStep(9)">
+                            <span>🚀 Chạy Bước 9</span>
+                        </button>
+                        <button class="control-btn btn-reset" onclick="resetStep(9)">
+                            <span>🔄 Reset</span>
+                        </button>
+                        <button class="control-btn btn-next" onclick="nextStep()" disabled="disabled" id="nextBtn9">
+                            <span>Tiếp theo →</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 10: Tổng kết -->
+                <div class="step-content" id="step10">
+                    <div class="step-header">
+                        <h2>🎯 Bước 10: Tổng Kết & Xuất File</h2>
+                        <p>Tổng kết kết quả phân tích và xuất file kết quả cuối cùng.</p>
+                    </div>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">
+                            <span>📋 Copy</span>
+                        </button>
+                        <code># Lưu file kết quả
+output_dir = 'output'
+os.makedirs(output_dir, exist_ok=True)
+output_file = os.path.join(output_dir, f"{ticker_X}_Stock.csv")
+
+df_period.to_csv(output_file, index=False, encoding='utf-8-sig')
+
+print("🎉 PHÂN TÍCH HOÀN TẤT!")
+print(f"📁 File kết quả: {output_file}")
+print(f"📊 Kích thước dữ liệu: {df_period.shape}")
+
+# Tổng kết kết quả
+print("\n📈 TỔNG KẾT PHÂN TÍCH:")
+print(f"• Mã cổ phiếu: {ticker_X} - {shortName_X}")
+print(f"• Số ngày phân tích: {len(df_period)}")
+print(f"• Giá Close trung bình: {df_period['close'].mean():.0f}")
+print(f"• Tổng khối lượng: {df_period['volume'].sum():,}")
+print(f"• Số ngày tăng/giảm: {len(df_period[df_period['Info02'] == 1])}/{len(df_period[df_period['Info02'] == -1])}")
+print(f"• Chất lượng mô hình hồi quy: R² = {r2:.4f}")
+
+print("\n✅ Tất cả các bước đã được hoàn thành thành công!")</code>
+                    </div>
+                    
+                    <div class="output-container" id="output10">
+                        <!-- Kết quả sẽ hiển thị ở đây -->
+                    </div>
+                    
+                    <div class="validation-result">
+                        <h3 style="margin-bottom: 1.5rem; color: #1f2937;">📋 Báo cáo hoàn thành:</h3>
+                        <div id="completionReport"></div>
+                    </div>
+                    
+                    <div class="loading-spinner" id="loading10">
+                        <div class="spinner"></div>
+                        <p>Đang tổng kết và xuất file kết quả...</p>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="control-btn btn-prev" onclick="prevStep()">
+                            <span>← Quay lại</span>
+                        </button>
+                        <button class="control-btn btn-run" onclick="runStep(10)">
+                            <span>🚀 Chạy Bước 10</span>
+                        </button>
+                        <button class="control-btn btn-reset" onclick="resetAll()">
+                            <span>🔄 Reset Tất Cả</span>
+                        </button>
+                        <button class="control-btn btn-next" onclick="downloadResults()" disabled="disabled" id="nextBtn10">
+                            <span>📥 Tải Kết Quả</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="js/app.js"></script>
+    <script>
+        // Biến toàn cục
+        let currentStep = 1;
+        const totalSteps = 10;
+        let uploadedFiles = [];
+        let completedSteps = new Set();
+        
+        // Hàm chuyển step
+        function goToStep(stepNumber) {
+            // Ẩn tất cả steps
+            document.querySelectorAll('.step-content').forEach(step => {
+                step.classList.remove('active');
+            });
+            document.querySelectorAll('.step-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Hiển thị step được chọn
+            const stepElement = document.getElementById(`step${stepNumber}`);
+            const stepItem = document.querySelector(`.step-item[data-step="${stepNumber}"]`);
+            
+            if (stepElement && stepItem) {
+                stepElement.classList.add('active');
+                stepItem.classList.add('active');
+                
+                // Cập nhật progress bar
+                updateProgressBar();
+                
+                currentStep = stepNumber;
+            }
+        }
+        
+        // Hàm cập nhật progress bar
+        function updateProgressBar() {
+            const progress = ((currentStep - 1) / (totalSteps - 1)) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+            document.getElementById('progressText').textContent = 
+                `Tiến độ: ${currentStep - 1}/${totalSteps} bước (${Math.round(progress)}%)`;
+        }
+        
+        // Hàm chạy step với loading
+        function runStep(stepNumber) {
+            const outputContainer = document.getElementById(`output${stepNumber}`);
+            const loadingElement = document.getElementById(`loading${stepNumber}`);
+            const nextButton = document.getElementById(`nextBtn${stepNumber}`);
+            
+            if (!outputContainer || !loadingElement) return;
+            
+            // Hiển thị loading
+            outputContainer.style.display = 'none';
+            loadingElement.style.display = 'block';
+            outputContainer.classList.add('loading');
+            
+            // Disable nút run
+            const runButton = document.querySelector(`#step${stepNumber} .btn-run`);
+            if (runButton) runButton.disabled = true;
+            
+            // Giả lập delay xử lý
+            setTimeout(() => {
+                // Ẩn loading, hiển thị output
+                loadingElement.style.display = 'none';
+                outputContainer.style.display = 'block';
+                outputContainer.classList.remove('loading');
+                
+                // Chạy simulation
+                simulateStep(stepNumber, outputContainer);
+                
+                // Kích hoạt nút Next và cập nhật trạng thái
+                if (nextButton) {
+                    nextButton.disabled = false;
+                }
+                
+                // Cập nhật trạng thái step
+                const stepStatus = document.querySelector(`.step-item[data-step="${stepNumber}"] .step-status`);
+                if (stepStatus) {
+                    stepStatus.textContent = '✅ Đã hoàn thành';
+                    stepStatus.style.color = '#10b981';
+                }
+                
+                // Thêm vào completed steps
+                completedSteps.add(stepNumber);
+                
+                // Enable nút run
+                if (runButton) runButton.disabled = false;
+                
+            }, 2000 + Math.random() * 1000); // Random delay 2-3 seconds
+        }
+        
+        // Hàm giả lập các step
+        function simulateStep(stepNumber, outputContainer) {
+            outputContainer.innerHTML = '';
+            
+            switch(stepNumber) {
+                case 1:
+                    simulateStep1(outputContainer);
+                    break;
+                case 2:
+                    simulateStep2(outputContainer);
+                    break;
+                case 3:
+                    simulateStep3(outputContainer);
+                    break;
+                case 4:
+                    simulateStep4(outputContainer);
+                    break;
+                case 5:
+                    simulateStep5(outputContainer);
+                    break;
+                case 6:
+                    simulateStep6(outputContainer);
+                    break;
+                case 7:
+                    simulateStep7(outputContainer);
+                    break;
+                case 8:
+                    simulateStep8(outputContainer);
+                    break;
+                case 9:
+                    simulateStep9(outputContainer);
+                    break;
+                case 10:
+                    simulateStep10(outputContainer);
+                    break;
+            }
+        }
+        
+        // Các hàm simulateStep giữ nguyên từ code trước, nhưng được cập nhật với nội dung mới
+        function simulateStep1(outputContainer) {
+            addOutput(outputContainer, '🔍 Đang kiểm tra files upload...', 'warning');
+            addOutput(outputContainer, '📁 Quét thư mục và xác thực định dạng...', 'info');
+            
+            setTimeout(() => {
+                if (uploadedFiles.length >= 2) {
+                    addOutput(outputContainer, '✅ Đã tìm thấy file vnstock_listing_companies.csv', 'success');
+                    addOutput(outputContainer, '✅ Đã tìm thấy file SZL.csv', 'success');
+                    addOutput(outputContainer, '📊 Kiểm tra kích thước files...', 'info');
+                    addOutput(outputContainer, '🔒 Xác thực tính toàn vẹn dữ liệu...', 'info');
+                    addOutput(outputContainer, '🎯 Tất cả files đã sẵn sàng cho phân tích!', 'success');
+                    
+                    // Hiển thị validation result
+                    document.getElementById('validationResult1').style.display = 'block';
+                    document.getElementById('validationContent1').innerHTML = `
+                        <div class="validation-item">
+                            <div class="validation-icon success">✓</div>
+                            <div>
+                                <strong>File vnstock_listing_companies.csv</strong>
+                                <div>Định dạng: CSV UTF-8</div>
+                                <div>Kích thước: 245 KB</div>
+                            </div>
+                        </div>
+                        <div class="validation-item">
+                            <div class="validation-icon success">✓</div>
+                            <div>
+                                <strong>File SZL.csv</strong>
+                                <div>Định dạng: CSV UTF-8</div>
+                                <div>Kích thước: 18 KB</div>
+                            </div>
+                        </div>
+                        <div class="validation-item">
+                            <div class="validation-icon success">✓</div>
+                            <div>
+                                <strong>Kiểm tra cấu trúc</strong>
+                                <div>Tất cả cột cần thiết đã được xác nhận</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    addOutput(outputContainer, '❌ Thiếu file cần thiết! Vui lòng upload đủ 2 file CSV.', 'error');
+                    addOutput(outputContainer, '📋 Yêu cầu: vnstock_listing_companies.csv và SZL.csv', 'error');
+                }
+            }, 800);
+        }
+        
+        function simulateStep2(outputContainer) {
+            addOutput(outputContainer, '📖 Đang đọc file vnstock_listing_companies.csv...', 'warning');
+            addOutput(outputContainer, '🔍 Phân tích cấu trúc dữ liệu...', 'info');
+            
+            setTimeout(() => {
+                addOutput(outputContainer, '✅ File đã được đọc thành công', 'success');
+                addOutput(outputContainer, '📊 Đang phân tích schema...', 'info');
+                addOutput(outputContainer, '', '');
+                addOutput(outputContainer, 'Danh sách các cột:', '');
+                addOutput(outputContainer, "['ticker', 'exchange', 'shortName', 'industry', 'industryEn', 'establishedYear', 'noEmployees', 'noShareholders', 'foreignPercent', 'website', 'stockRating', 'outstandingShare', 'issueShare', 'companyType', 'monthlyRecords']", '');
+                addOutput(outputContainer, '', '');
+                addOutput(outputContainer, 'Số dòng dữ liệu: 1,155', 'success');
+                addOutput(outputContainer, '✅ Không có dữ liệu missing', 'success');
+                addOutput(outputContainer, '🔍 Kiểm tra kiểu dữ liệu... OK', 'success');
+            }, 1200);
+        }
+        
+        function simulateStep3(outputContainer) {
+            addOutput(outputContainer, '🔎 Đang tìm mã cổ phiếu từ MSSV...', 'warning');
+            addOutput(outputContainer, '📝 Áp dụng công thức: (3055 % 1000) = 55', 'info');
+            
+            setTimeout(() => {
+                addOutput(outputContainer, 'MSSV: 23133055', '');
+                addOutput(outputContainer, '4 chữ số cuối: 3055', '');
+                addOutput(outputContainer, 'Index dùng: 55', '');
+                addOutput(outputContainer, '✅ Ticker được chọn: SZL', 'success');
+                addOutput(outputContainer, '🏢 Tên công ty: Sonadezi Long Thành', '');
+                addOutput(outputContainer, '📁 File lịch sử: SZL.csv', '');
+                addOutput(outputContainer, '📍 Ngành: Bất động sản', '');
+                addOutput(outputContainer, '🎯 Đã xác định thành công mã cổ phiếu!', 'success');
+            }, 1000);
+        }
+        
+        function simulateStep4(outputContainer) {
+            addOutput(outputContainer, '📊 Đang thống kê dữ liệu tháng 8-9/2023...', 'warning');
+            addOutput(outputContainer, '🔍 Lọc dữ liệu theo khoảng thời gian...', 'info');
+            
+            setTimeout(() => {
+                addOutput(outputContainer, '✅ Đã hoàn thành thống kê', 'success');
+                addOutput(outputContainer, '📅 Số ngày giao dịch: 40', '');
+                addOutput(outputContainer, '📦 Tổng khối lượng: 106,600', '');
+                addOutput(outputContainer, '💰 Giá Close trung bình: 53,818', '');
+                addOutput(outputContainer, '📈 Giá Close cao nhất: 56,500', '');
+                addOutput(outputContainer, '📉 Giá Close thấp nhất: 50,500', '');
+                addOutput(outputContainer, '📊 Biên độ giá trung bình: 605', '');
+                addOutput(outputContainer, '📋 Khối lượng trung bình: 2,665', '');
+                
+                // Cập nhật stat cards
+                document.getElementById('statDays').textContent = '40';
+                document.getElementById('statVolume').textContent = '106K';
+                document.getElementById('statAvgPrice').textContent = '53,818';
+                document.getElementById('statRange').textContent = '605';
+            }, 1000);
+        }
+        
+        function simulateStep5(outputContainer) {
+            addOutput(outputContainer, '📈 Đang tạo cột Info01...', 'warning');
+            addOutput(outputContainer, '🔍 So sánh Close vs Open trong ngày...', 'info');
+            
+            setTimeout(() => {
+                addOutput(outputContainer, '✅ Đã tạo thành công cột Info01', 'success');
+                addOutput(outputContainer, '', '');
+                addOutput(outputContainer, 'Phân bố giá trị Info01:', '');
+                addOutput(outputContainer, 'Info01', '');
+                addOutput(outputContainer, '-1     7', '');
+                addOutput(outputContainer, ' 0    13', '');
+                addOutput(outputContainer, ' 1    20', '');
+                addOutput(outputContainer, '', '');
+                addOutput(outputContainer, 'Giải thích: 1=Close>Open, -1=Close<Open, 0=Close=Open', 'info');
+                addOutput(outputContainer, '📊 Tỷ lệ ngày tăng giá: 50%', 'success');
+                addOutput(outputContainer, '📈 Xu hướng tích cực chiếm ưu thế', 'success');
+            }, 1000);
+        }
+        
+        function simulateStep6(outputContainer) {
+            addOutput(outputContainer, '📉 Đang tạo cột Info02...', 'warning');
+            addOutput(outputContainer, '🔍 So sánh Close vs Close ngày trước...', 'info');
+            
+            setTimeout(() => {
+                addOutput(outputContainer, '✅ Đã tạo thành công cột Info02', 'success');
+                addOutput(outputContainer, '', '');
+                addOutput(outputContainer, 'Phân bố giá trị Info02:', '');
+                addOutput(outputContainer, 'Info02', '');
+                addOutput(outputContainer, '-1    20', '');
+                addOutput(outputContainer, ' 0     8', '');
+                addOutput(outputContainer, ' 1    12', '');
+                addOutput(outputContainer, '', '');
+                addOutput(outputContainer, 'Tỷ lệ biến động:', '');
+                addOutput(outputContainer, '📈 Số ngày tăng: 12 (30.0%)', '');
+                addOutput(outputContainer, '📉 Số ngày giảm: 20 (50.0%)', '');
+                addOutput(outputContainer, '➖ Số ngày không đổi: 8 (20.0%)', '');
+                addOutput(outputContainer, '⚠️  Xu hướng giảm chiếm ưu thế trong giai đoạn này', 'warning');
+            }, 1000);
+        }
+        
+        function simulateStep7(outputContainer) {
+            addOutput(outputContainer, '📊 Đang phân tích xu hướng...', 'warning');
+            addOutput(outputContainer, '🔍 Tính toán hệ số tương quan...', 'info');
+            
+            setTimeout(() => {
+                addOutput(outputContainer, '✅ Đã hoàn thành phân tích xu hướng', 'success');
+                addOutput(outputContainer, '', '');
+                addOutput(outputContainer, 'Hệ số tương quan Volume-Close: -0.1428', '');
+                addOutput(outputContainer, '📉 Mối quan hệ nghịch biến yếu', 'warning');
+                addOutput(outputContainer, '', '');
+                addOutput(outputContainer, 'Thống kê theo tuần:', '');
+                addOutput(outputContainer, '        close       volume Info02', '');
+                addOutput(outputContainer, '       mean    std    sum <lambda>', '');
+                addOutput(outputContainer, 'Week', '');
+                addOutput(outputContainer, '31   54150.00   707.11  13200      1', '');
+                addOutput(outputContainer, '32   53925.00  1583.45  26700      2', '');
+                addOutput(outputContainer, '33   54116.67  1695.02  19900      2', '');
+                addOutput(outputContainer, '34   53514.29  2610.37  18200      2', '');
+                addOutput(outputContainer, '35   53785.71  1734.64  15900      2', '');
+                addOutput(outputContainer, '36   54100.00  2121.32  12700      3', '');
+                addOutput(outputContainer, '', '');
+                addOutput(outputContainer, 'Số ngày có volume bất thường: 3', 'info');
+                addOutput(outputContainer, '📈 Tuần 36 có nhiều ngày tăng giá nhất', 'success');
+            }, 1500);
+        }
+        
+        function simulateStep8(outputContainer) {
+            addOutput(outputContainer, '📈 Đang tạo biểu đồ...', 'warning');
+            addOutput(outputContainer, '🎨 Vẽ biểu đồ đường giá...', 'info');
+            
+            setTimeout(() => {
+                addOutput(outputContainer, '✅ Đã tạo thành công biểu đồ', 'success');
+                addOutput(outputContainer, '📊 Biểu đồ đường: Open vs Close', '');
+                addOutput(outputContainer, '📊 Biểu đồ cột: Khối lượng giao dịch', '');
+                addOutput(outputContainer, '🎯 Đã lưu hình ảnh biểu đồ', 'success');
+                addOutput(outputContainer, '📈 Xu hướng giá ổn định với biến động nhỏ', 'info');
+                addOutput(outputContainer, '📉 Khối lượng tập trung vào các ngày biến động mạnh', 'info');
+                
+                // Cập nhật chart preview
+                const chartPlaceholder = document.querySelector('.chart-placeholder');
+                if (chartPlaceholder) {
+                    chartPlaceholder.innerHTML = '📈 Biểu đồ đã được tạo thành công!<br><small>Trong môi trường thực tế, biểu đồ matplotlib sẽ hiển thị tại đây</small>';
+                    chartPlaceholder.style.background = 'linear-gradient(135deg, #dbeafe, #e0e7ff)';
+                    chartPlaceholder.style.color = '#2563eb';
+                }
+            }, 2000);
+        }
+        
+        function simulateStep9(outputContainer) {
+            addOutput(outputContainer, '🤖 Đang xây dựng mô hình hồi quy...', 'warning');
+            addOutput(outputContainer, '🔍 Chuẩn bị dữ liệu training...', 'info');
+            
+            setTimeout(() => {
+                addOutput(outputContainer, '✅ Đã huấn luyện thành công mô hình', 'success');
+                addOutput(outputContainer, '', '');
+                addOutput(outputContainer, 'KẾT QUẢ MÔ HÌNH HỒI QUY:', '');
+                addOutput(outputContainer, 'Hệ số hồi quy: -0.10520014', '');
+                addOutput(outputContainer, 'Intercept: 54072.36', '');
+                addOutput(outputContainer, 'R² (Độ phù hợp): -0.0412', '');
+                addOutput(outputContainer, 'RMSE (Sai số): 1768.88', '');
+                addOutput(outputContainer, '', '');
+                addOutput(outputContainer, '⚠️  Mô hình có R² âm - không phù hợp', 'warning');
+                addOutput(outputContainer, '💡 Volume và Close không có quan hệ tuyến tính mạnh', 'info');
+                addOutput(outputContainer, '', '');
+                addOutput(outputContainer, 'DỰ ĐOÁN CHO 10 GIÁ TRỊ VOLUME:', '');
+                addOutput(outputContainer, 'Volume =    1,000 → Predicted Close =    53962', '');
+                addOutput(outputContainer, 'Volume =    5,000 → Predicted Close =    53912', '');
+                addOutput(outputContainer, 'Volume =   10,000 → Predicted Close =    53867', '');
+                addOutput(outputContainer, 'Volume =   25,000 → Predicted Close =    53750', '');
+                addOutput(outputContainer, 'Volume =   50,000 → Predicted Close =    53557', '');
+                addOutput(outputContainer, 'Volume =   75,000 → Predicted Close =    53364', '');
+                addOutput(outputContainer, 'Volume =  100,000 → Predicted Close =    53171', '');
+                addOutput(outputContainer, 'Volume =  250,000 → Predicted Close =    51997', '');
+                addOutput(outputContainer, 'Volume =  500,000 → Predicted Close =    49822', '');
+                addOutput(outputContainer, 'Volume = 1,000,000 → Predicted Close =    45572', '');
+            }, 2500);
+        }
+        
+        function simulateStep10(outputContainer) {
+            addOutput(outputContainer, '🎯 Đang tổng kết kết quả...', 'warning');
+            addOutput(outputContainer, '📁 Chuẩn bị xuất file kết quả...', 'info');
+            
+            setTimeout(() => {
+                addOutput(outputContainer, '🎉 PHÂN TÍCH HOÀN TẤT!', 'success');
+                addOutput(outputContainer, '📁 File kết quả: output/SZL_Stock.csv', '');
+                addOutput(outputContainer, '📊 Kích thước dữ liệu: (40, 9)', '');
+                addOutput(outputContainer, '', '');
+                addOutput(outputContainer, '📈 TỔNG KẾT PHÂN TÍCH:', '');
+                addOutput(outputContainer, '• Mã cổ phiếu: SZL - Sonadezi Long Thành', '');
+                addOutput(outputContainer, '• Số ngày phân tích: 40', '');
+                addOutput(outputContainer, '• Giá Close trung bình: 53,818', '');
+                addOutput(outputContainer, '• Tổng khối lượng: 106,600', '');
+                addOutput(outputContainer, '• Số ngày tăng/giảm: 12/20', '');
+                addOutput(outputContainer, '• Chất lượng mô hình hồi quy: R² = -0.0412', '');
+                addOutput(outputContainer, '', '');
+                addOutput(outputContainer, '✅ Tất cả các bước đã được hoàn thành thành công!', 'success');
+                
+                // Cập nhật completion report
+                document.getElementById('completionReport').innerHTML = `
+                    <div class="validation-item">
+                        <div class="validation-icon success">✓</div>
+                        <div>
+                            <strong>Dữ liệu đầu vào</strong>
+                            <div>✅ Đã xác thực 2 file CSV</div>
+                        </div>
+                    </div>
+                    <div class="validation-item">
+                        <div class="validation-icon success">✓</div>
+                        <div>
+                            <strong>Phân tích cơ bản</strong>
+                            <div>✅ Thống kê mô tả hoàn tất</div>
+                        </div>
+                    </div>
+                    <div class="validation-item">
+                        <div class="validation-icon success">✓</div>
+                        <div>
+                            <strong>Xử lý dữ liệu</strong>
+                            <div>✅ Đã tạo 2 cột thông tin mới</div>
+                        </div>
+                    </div>
+                    <div class="validation-item">
+                        <div class="validation-icon success">✓</div>
+                        <div>
+                            <strong>Phân tích nâng cao</strong>
+                            <div>✅ Xu hướng và tương quan</div>
+                        </div>
+                    </div>
+                    <div class="validation-item">
+                        <div class="validation-icon success">✓</div>
+                        <div>
+                            <strong>Trực quan hóa</strong>
+                            <div>✅ Biểu đồ và mô hình</div>
+                        </div>
+                    </div>
+                    <div class="validation-item">
+                        <div class="validation-icon success">✓</div>
+                        <div>
+                            <strong>Kết quả đầu ra</strong>
+                            <div>✅ File CSV đã được xuất</div>
+                        </div>
+                    </div>
+                `;
+            }, 2000);
+        }
+        
+        // Hàm thêm output
+        function addOutput(container, text, type = '') {
+            if (!container) return;
+            
+            const outputLine = document.createElement('div');
+            outputLine.className = `output-line ${type}`;
+            
+            // Thêm icon tương ứng với type
+            let icon = '';
+            if (type === 'success') icon = '✅ ';
+            else if (type === 'error') icon = '❌ ';
+            else if (type === 'warning') icon = '⚠️ ';
+            else if (type === 'info') icon = '🔍 ';
+            
+            outputLine.textContent = icon + text;
+            container.appendChild(outputLine);
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        // Hàm next step
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                goToStep(currentStep + 1);
+            }
+        }
+        
+        // Hàm prev step
+        function prevStep() {
+            if (currentStep > 1) {
+                goToStep(currentStep - 1);
+            }
+        }
+        
+        // Hàm reset step
+        function resetStep(stepNumber) {
+            const outputContainer = document.getElementById(`output${stepNumber}`);
+            const nextButton = document.getElementById(`nextBtn${stepNumber}`);
+            const stepStatus = document.querySelector(`.step-item[data-step="${stepNumber}"] .step-status`);
+            
+            if (outputContainer) outputContainer.innerHTML = '';
+            if (nextButton) nextButton.disabled = true;
+            if (stepStatus) {
+                stepStatus.textContent = 'Chờ thực hiện';
+                stepStatus.style.color = '';
+            }
+            
+            // Ẩn validation result nếu là step 1
+            if (stepNumber === 1) {
+                document.getElementById('validationResult1').style.display = 'none';
+            }
+            
+            // Reset stat cards nếu là step 4
+            if (stepNumber === 4) {
+                document.getElementById('statDays').textContent = '0';
+                document.getElementById('statVolume').textContent = '0';
+                document.getElementById('statAvgPrice').textContent = '0';
+                document.getElementById('statRange').textContent = '0';
+            }
+            
+            // Xóa khỏi completed steps
+            completedSteps.delete(stepNumber);
+        }
+        
+        // Hàm reset all
+        function resetAll() {
+            for (let i = 1; i <= totalSteps; i++) {
+                resetStep(i);
+            }
+            goToStep(1);
+            uploadedFiles = [];
+            completedSteps.clear();
+            document.getElementById('fileList').innerHTML = '';
+            updateProgressBar();
+        }
+        
+        // Hàm download results
+        function downloadResults() {
+            alert('📥 Trong môi trường thực tế, file SZL_Stock.csv sẽ được tải xuống tại đây!\n\nFile đã được lưu tại: output/SZL_Stock.csv');
+        }
+        
+        // Xử lý upload file
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            handleFiles(e.target.files);
+        });
+        
+        // Drag and drop
+        const uploadArea = document.getElementById('uploadArea');
+        if (uploadArea) {
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', function() {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files);
+            });
+        }
+        
+        function handleFiles(files) {
+            uploadedFiles = Array.from(files);
+            const fileList = document.getElementById('fileList');
+            if (!fileList) return;
+            
+            fileList.innerHTML = '';
+            
+            uploadedFiles.forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-icon">📊</div>
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${(file.size / 1024).toFixed(2)} KB</div>
+                    </div>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+        
+        // Copy code
+        function copyCode(button) {
+            const codeBlock = button.parentElement.querySelector('code');
+            if (codeBlock) {
+                navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+                    const originalText = button.innerHTML;
+                    button.innerHTML = '<span>✅ Đã copy!</span>';
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                    }, 2000);
+                });
+            }
+        }
+        
+        // Khởi tạo
+        document.addEventListener('DOMContentLoaded', function() {
+            // Thêm event listeners cho các step items
+            document.querySelectorAll('.step-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const stepNumber = parseInt(this.getAttribute('data-step'));
+                    goToStep(stepNumber);
+                });
+            });
+            
+            // Cập nhật progress bar ban đầu
+            updateProgressBar();
+        });
+    </script>
 </body>
 </html>
